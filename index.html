@@ -14,13 +14,12 @@
   <script src="lib/webgl-utils.js"></script>
   <script src="lib/webgl-debug.js"></script>
   <script src="lib/cuon-utils.js"></script>
-  <script src="Point.js"></script>
+  <script src="lib/cuon-matrix-cse160.js"></script>
   <script src="Triangle.js"></script>
-  <script src="Circle.js"></script>
-  <script src="TotoroSketch.js"></script>
-  <script src="Painting.js"></script>
+  <script src="Cube.js"></script>
+  <script src="BlockAnimal.js"></script>
 
-  <br>
+  <!-- <br>
   <button type="button" id="green">Green</button>
   <button type="button" id="red">Red</button>
   <br>
@@ -39,17 +38,20 @@
     Green <input type="range" min="0" max="100" value="100" class="slider" id="greenSlide">
   <p>
     Blue <input type="range" min="0" max="100" value="100" class="slider" id="blueSlide">
+    <br> -->
+  <p>
+    View Angle <input type="range" min="0" max="359" value="0" class="slider" id="viewAngleSlide">
     <br>
   <p>
-    Size <input type="range" min="5" max="40" value="10" class="slider" id="sizeSlide">
+    Cube Rotation Angle <input type="range" min="0" max="359" value="0" class="slider" id="cubeRotationAngleSlide">
     <br>
-  <p>
-    Circle Segments <input type="range" min="3" max="50" value="10" class="slider" id="segmentSlide">
+    Cube Rotation Vector X <input type="range" min="-1" max="1" value="0" class="slider" id="cubeRotationXSlide">
     <br>
+    Cube Rotation Vector Y <input type="range" min="-1" max="1" value="0" class="slider" id="cubeRotationYSlide">
     <br>
-  </p>
-  <button type="button" id="sketch">Draw Sketch</button>
-  <img src="TotoroSketch.png" alt="Cute Sketch of Totoro" style="width:350px;">
+    Cube Rotation Vector Z <input type="range" min="-1" max="1" value="1" class="slider" id="cubeRotationZSlide">
+    <br>
+
 </body>
 
 </html>

@@ -2,10 +2,10 @@
 // Vertex shader program
 var VSHADER_SOURCE = `
   attribute vec4 a_Position;
-  uniform float u_Size;
+  uniform mat4 u_ModelMatrix;
+  uniform mat4 u_GlobalRotateMatrix;
   void main() {
-    gl_Position = a_Position;
-    gl_PointSize = u_Size;
+    gl_Position = u_GlobalRotateMatrix * u_ModelMatrix * a_Position;
   }`
 
 // Fragment shader program
@@ -21,7 +21,8 @@ let canvas;
 let gl;
 let a_Position;
 let u_FragColor;
-let u_Size;
+let u_ModelMatrix;
+let u_GlobalRotateMatrix;
 
 // INIT FUNCTIONS //
 function setupWebGL() {
@@ -29,12 +30,13 @@ function setupWebGL() {
   canvas = document.getElementById('webgl');
 
   // Get the rendering context for WebGL
-  //gl = getWebGLContext(canvas);
   gl = canvas.getContext("webgl", { preserveDrawingBuffer: true });
   if (!gl) {
     console.log('Failed to get the rendering context for WebGL');
     return;
   }
+
+  gl.enable(gl.DEPTH_TEST);
 }
 
 function connectVariablesToGLSL() {
@@ -58,53 +60,58 @@ function connectVariablesToGLSL() {
     return;
   }
 
-  // Get the storage location of u_Size
-  u_Size = gl.getUniformLocation(gl.program, 'u_Size');
-  if (!u_Size) {
-    console.log('Failed to get the storage location of u_Size');
+  // Get the storage location of u_ModelMatrix
+  u_ModelMatrix = gl.getUniformLocation(gl.program, 'u_ModelMatrix');
+  if (!u_ModelMatrix) {
+    console.log('Failed to get the storage location of u_ModelMatrix');
+    return;
+  }
+
+  // Get the storage location of u_GlobalRotateMatrix
+  u_GlobalRotateMatrix = gl.getUniformLocation(gl.program, 'u_GlobalRotateMatrix');
+  if (!u_GlobalRotateMatrix) {
+    console.log('Failed to get the storage location of u_GlobalRotateMatrix');
     return;
   }
 }
 
 // HTML FUNCTIONS //
 
-// UI Constants
-const POINT = 0;
-const TRIANGLE = 1;
-const CIRCLE = 2;
-
 // UI Globals
-let g_selectedColor = [1.0, 1.0, 1.0, 1.0];
-let g_selectedSize = 10;
-let g_selectedSegments = 10;
-let g_selectedType = POINT;
-let g_mirrorMode = false;
+let g_viewAngle = 0;
+let g_cubeRotationAngle = 0;
+let g_cubeRotVecX = 0;
+let g_cubeRotVecY = 0;
+let g_cubeRotVecZ = 1;
 
 // Set up actions for HTML UI elements
 function addActionsForHtmlUI() {
   // Button Events
-  document.getElementById('green').onclick = function () { g_selectedColor = [0.0, 1.0, 0.0, 1.0]; };
-  document.getElementById('red').onclick = function () { g_selectedColor = [1.0, 0.0, 0.0, 1.0]; };
-  document.getElementById('clear').onclick = function () { g_shapesList = []; renderAllShapes(); };
+  // document.getElementById('green').onclick = function () { g_selectedColor = [0.0, 1.0, 0.0, 1.0]; };
+  // document.getElementById('red').onclick = function () { g_selectedColor = [1.0, 0.0, 0.0, 1.0]; };
+  // document.getElementById('clear').onclick = function () { g_shapesList = []; renderAllShapes(); };
 
-  document.getElementById('point').onclick = function () { g_selectedType = POINT; };
-  document.getElementById('triangle').onclick = function () { g_selectedType = TRIANGLE; };
-  document.getElementById('circle').onclick = function () { g_selectedType = CIRCLE; };
+  // document.getElementById('point').onclick = function () { g_selectedType = POINT; };
+  // document.getElementById('triangle').onclick = function () { g_selectedType = TRIANGLE; };
+  // document.getElementById('circle').onclick = function () { g_selectedType = CIRCLE; };
 
-  document.getElementById('mirrormode').onclick = function () { if (g_mirrorMode) g_mirrorMode = false; else g_mirrorMode = true; };
+  // document.getElementById('mirrormode').onclick = function () { if (g_mirrorMode) g_mirrorMode = false; else g_mirrorMode = true; };
 
-  document.getElementById('sketch').onclick = function () { let sketch = new TotoroSketch(); g_shapesList.push(sketch); renderAllShapes(); };
+  // document.getElementById('sketch').onclick = function () { let sketch = new TotoroSketch(); g_shapesList.push(sketch); renderAllShapes(); };
 
-  // Color Slider Events
-  document.getElementById('redSlide').addEventListener("mouseup", function () { g_selectedColor[0] = this.value / 100; });
-  document.getElementById('greenSlide').addEventListener("mouseup", function () { g_selectedColor[1] = this.value / 100; });
-  document.getElementById('blueSlide').addEventListener("mouseup", function () { g_selectedColor[2] = this.value / 100; });
+  // // Color Slider Events
+  // document.getElementById('redSlide').addEventListener("mouseup", function () { g_selectedColor[0] = this.value / 100; });
+  // document.getElementById('greenSlide').addEventListener("mouseup", function () { g_selectedColor[1] = this.value / 100; });
+  // document.getElementById('blueSlide').addEventListener("mouseup", function () { g_selectedColor[2] = this.value / 100; });
 
-  // Size Slider Events
-  document.getElementById('sizeSlide').addEventListener("mouseup", function () { g_selectedSize = this.value; });
+  // Scene Manipulation Sliders
+  document.getElementById('viewAngleSlide').addEventListener("mousemove", function () { g_viewAngle = this.value; renderAllShapes(); });
 
-  // Circle Segment Slider Events
-  document.getElementById('segmentSlide').addEventListener("mouseup", function () { g_selectedSegments = this.value; });
+  document.getElementById('cubeRotationAngleSlide').addEventListener("mousemove", function () { g_cubeRotationAngle = this.value; renderAllShapes(); });
+  document.getElementById('cubeRotationXSlide').addEventListener("mousemove", function () { g_cubeRotVecX = this.value; renderAllShapes(); });
+  document.getElementById('cubeRotationYSlide').addEventListener("mousemove", function () { g_cubeRotVecY = this.value; renderAllShapes(); });
+  document.getElementById('cubeRotationZSlide').addEventListener("mousemove", function () { g_cubeRotVecZ = this.value; renderAllShapes(); });
+
 }
 
 function main() {
@@ -117,78 +124,10 @@ function main() {
   // Add HTML UI Actions
   addActionsForHtmlUI();
 
-  // Register function (event handler) to be called on a mouse press
-  canvas.onclick = click;
-  canvas.onmousemove = function (ev) { if (ev.buttons == 1) { click(ev) } };
-
   // Specify the color for clearing <canvas>
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
 
   // Clear <canvas>
-  gl.clear(gl.COLOR_BUFFER_BIT);
-}
-
-var g_shapesList = [];
-
-// var g_points = [];  // The array for the position of a mouse press
-// var g_colors = [];  // The array to store the color of a point
-// var g_sizes = [];  // The array to store the sizes of a point
-
-function click(ev) {
-
-  // Get click event in WebGL coordinates
-  [x, y] = convertCoordinatesEventToGL(ev);
-
-
-  // Create and store the new shape
-  switch (g_selectedType) {
-    case TRIANGLE:
-      let triangle = new Triangle();
-      triangle.position = [x, y];
-      triangle.color = g_selectedColor.slice();
-      triangle.size = g_selectedSize;
-      g_shapesList.push(triangle);
-      if (g_mirrorMode) {
-        let triangle_mirror = new Triangle();
-        triangle_mirror.position = [-x, y];
-        triangle_mirror.color = g_selectedColor.slice();
-        triangle_mirror.size = g_selectedSize;
-        g_shapesList.push(triangle_mirror);
-      }
-      break;
-    case POINT:
-      let point = new Point();
-      point.position = [x, y];
-      point.color = g_selectedColor.slice();
-      point.size = g_selectedSize;
-      g_shapesList.push(point);
-      if (g_mirrorMode) {
-        let point_mirror = new Point();
-        point_mirror.position = [-x, y];
-        point_mirror.color = g_selectedColor.slice();
-        point_mirror.size = g_selectedSize;
-        g_shapesList.push(point_mirror);
-      }
-      break;
-    case CIRCLE:
-      let circle = new Circle();
-      circle.position = [x, y];
-      circle.color = g_selectedColor.slice();
-      circle.size = g_selectedSize;
-      circle.segments = g_selectedSegments;
-      g_shapesList.push(circle);
-      if (g_mirrorMode) {
-        let circle_mirror = new Circle();
-        circle_mirror.position = [-x, y];
-        circle_mirror.color = g_selectedColor.slice();
-        circle_mirror.size = g_selectedSize;
-        circle_mirror.segments = g_selectedSegments;
-        g_shapesList.push(circle_mirror);
-      }
-      break;
-  }
-
-  // Draw every shape in the canvas
   renderAllShapes();
 }
 
@@ -202,15 +141,26 @@ function convertCoordinatesEventToGL(ev) {
 
   return ([x, y]);
 }
+
 function renderAllShapes() {
 
   // Clear <canvas>
   gl.clear(gl.COLOR_BUFFER_BIT);
+  gl.clear(gl.DEPTH_BUFFER_BIT);
 
-  // var len = g_points.length;
-  var len = g_shapesList.length;
-  for (var i = 0; i < len; i++) {
-    g_shapesList[i].render();
-  }
+  var globalRotateMatrix = new Matrix4().rotate(g_viewAngle, 0, 1, 0);
+  gl.uniformMatrix4fv(u_GlobalRotateMatrix, false, globalRotateMatrix.elements);
+
+  // // Make a Test Triangle
+  // let TestTriangleModelMatrix = new Matrix4()
+  // gl.uniformMatrix4fv(u_ModelMatrix, false, TestTriangleModelMatrix.elements);
+  // drawTriangle3D([-1.0, 0.0, 0.0, -0.5, -1.0, 0.0, 0.0, 0.0, 0.0])
+
+  var box = new Cube();
+  box.color = [1, 0.455, 0.545, 1.0];
+  box.matrix.translate(0.25, 0.0, 0.0);
+  box.matrix.rotate(g_cubeRotationAngle, g_cubeRotVecX, g_cubeRotVecY, g_cubeRotVecZ);
+  box.matrix.scale(.25, 0.25, 0.25, 1.0);
+  box.render();
 }
 
