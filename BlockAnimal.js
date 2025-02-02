@@ -78,7 +78,8 @@ function connectVariablesToGLSL() {
 // HTML FUNCTIONS //
 
 // UI Globals
-let g_viewAngle = 0;
+let g_viewAngleY = 0;
+let g_viewAngleX = 0;
 let g_cubeRotationAngle = 0;
 let g_cubeRotVecX = 0;
 let g_cubeRotVecY = 0;
@@ -89,7 +90,7 @@ function addActionsForHtmlUI() {
   // Button Events
   // document.getElementById('green').onclick = function () { g_selectedColor = [0.0, 1.0, 0.0, 1.0]; };
   // document.getElementById('red').onclick = function () { g_selectedColor = [1.0, 0.0, 0.0, 1.0]; };
-  // document.getElementById('clear').onclick = function () { g_shapesList = []; renderAllShapes(); };
+  // document.getElementById('clear').onclick = function () { g_shapesList = []; renderScene(); };
 
   // document.getElementById('point').onclick = function () { g_selectedType = POINT; };
   // document.getElementById('triangle').onclick = function () { g_selectedType = TRIANGLE; };
@@ -97,7 +98,7 @@ function addActionsForHtmlUI() {
 
   // document.getElementById('mirrormode').onclick = function () { if (g_mirrorMode) g_mirrorMode = false; else g_mirrorMode = true; };
 
-  // document.getElementById('sketch').onclick = function () { let sketch = new TotoroSketch(); g_shapesList.push(sketch); renderAllShapes(); };
+  // document.getElementById('sketch').onclick = function () { let sketch = new TotoroSketch(); g_shapesList.push(sketch); renderScene(); };
 
   // // Color Slider Events
   // document.getElementById('redSlide').addEventListener("mouseup", function () { g_selectedColor[0] = this.value / 100; });
@@ -105,12 +106,13 @@ function addActionsForHtmlUI() {
   // document.getElementById('blueSlide').addEventListener("mouseup", function () { g_selectedColor[2] = this.value / 100; });
 
   // Scene Manipulation Sliders
-  document.getElementById('viewAngleSlide').addEventListener("mousemove", function () { g_viewAngle = this.value; renderAllShapes(); });
+  document.getElementById('viewAngleYSlide').addEventListener("mousemove", function () { g_viewAngleY = this.value; renderScene(); });
+  document.getElementById('viewAngleXSlide').addEventListener("mousemove", function () { g_viewAngleX = this.value; renderScene(); });
 
-  document.getElementById('cubeRotationAngleSlide').addEventListener("mousemove", function () { g_cubeRotationAngle = this.value; renderAllShapes(); });
-  document.getElementById('cubeRotationXSlide').addEventListener("mousemove", function () { g_cubeRotVecX = this.value; renderAllShapes(); });
-  document.getElementById('cubeRotationYSlide').addEventListener("mousemove", function () { g_cubeRotVecY = this.value; renderAllShapes(); });
-  document.getElementById('cubeRotationZSlide').addEventListener("mousemove", function () { g_cubeRotVecZ = this.value; renderAllShapes(); });
+  document.getElementById('cubeRotationAngleSlide').addEventListener("mousemove", function () { g_cubeRotationAngle = this.value; renderScene(); });
+  document.getElementById('cubeRotationXSlide').addEventListener("mousemove", function () { g_cubeRotVecX = this.value; renderScene(); });
+  document.getElementById('cubeRotationYSlide').addEventListener("mousemove", function () { g_cubeRotVecY = this.value; renderScene(); });
+  document.getElementById('cubeRotationZSlide').addEventListener("mousemove", function () { g_cubeRotVecZ = this.value; renderScene(); });
 
 }
 
@@ -128,7 +130,7 @@ function main() {
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
 
   // Clear <canvas>
-  renderAllShapes();
+  renderScene();
 }
 
 function convertCoordinatesEventToGL(ev) {
@@ -142,25 +144,121 @@ function convertCoordinatesEventToGL(ev) {
   return ([x, y]);
 }
 
-function renderAllShapes() {
+function renderScene() {
 
   // Clear <canvas>
   gl.clear(gl.COLOR_BUFFER_BIT);
   gl.clear(gl.DEPTH_BUFFER_BIT);
 
-  var globalRotateMatrix = new Matrix4().rotate(g_viewAngle, 0, 1, 0);
+  var globalRotateMatrix = new Matrix4();
+  globalRotateMatrix.rotate(g_viewAngleY, 0, 1, 0);
+  globalRotateMatrix.rotate(g_viewAngleX, 1, 0, 0);
   gl.uniformMatrix4fv(u_GlobalRotateMatrix, false, globalRotateMatrix.elements);
+
+  /// BULBASAUR MODEL ///
+
+  // Creature Body
+  var box = new Cube();
+  box.color = [0.761, 1, 0.78, 1.0];
+  box.matrix.translate(0.0, 0.0, 0.0);
+  box.matrix.rotate(0, 0, 0, 1);
+  box.matrix.scale(0.45, 0.25, 0.35);
+  box.matrix.translate(-0.5, -0.5, -0.5);
+  box.render();
+
+  // Creature Bulb Base
+  var box = new Cube();
+  box.color = [0.55, 0.8, 0.55, 1.0];
+  box.matrix.translate(0.0, 0.2, 0.0);
+  box.matrix.rotate(0, 0, 0, 1);
+  box.matrix.scale(0.325, 0.15, 0.225);
+  box.matrix.translate(-0.5, -0.5, -0.5);
+  box.render();
+
+  // Creature Bulb Top
+  var box = new Cube();
+  box.color = [0.55, 0.8, 0.55, 1.0];
+  box.matrix.translate(0.0, 0.3, 0.0);
+  box.matrix.rotate(0, 0, 0, 1);
+  box.matrix.scale(0.175, 0.075, 0.125);
+  box.matrix.translate(-0.5, -0.5, -0.5);
+  box.render();
+
+  // Creature Head
+  var box = new Cube();
+  box.color = [0.62, 0.875, 0.612, 1.0];
+  box.matrix.translate(0.25, 0.1, 0.0);
+  box.matrix.rotate(0, 0, 0, 1);
+  box.matrix.scale(0.15, 0.25, 0.25);
+  box.matrix.translate(-0.5, -0.5, -0.5);
+  box.render();
+
+  // Creature Ear Left
+  var box = new Cube();
+  box.color = [0.62, 0.875, 0.612, 1.0];
+  box.matrix.translate(0.25, 0.25, 0.09);
+  box.matrix.rotate(0, 0, 0, 1);
+  box.matrix.scale(0.05, 0.05, 0.05);
+  box.matrix.translate(-0.5, -0.5, -0.5);
+  box.render();
+
+  // Creature Ear Right
+  var box = new Cube();
+  box.color = [0.62, 0.875, 0.612, 1.0];
+  box.matrix.translate(0.25, 0.25, -0.09);
+  box.matrix.rotate(0, 0, 0, 1);
+  box.matrix.scale(0.05, 0.05, 0.05);
+  box.matrix.translate(-0.5, -0.5, -0.5);
+  box.render();
+
+  // Creature Left Fore Leg
+  var box = new Cube();
+  box.color = [0.761, 1, 0.78, 1.0];
+  box.matrix.translate(0.175, -0.15, 0.125);
+  box.matrix.rotate(0, 0, 0, 1);
+  box.matrix.scale(0.075, 0.1, 0.075);
+  box.matrix.translate(-0.5, -0.5, -0.5);
+  box.render();
+
+  // Creature Right Fore Leg
+  var box = new Cube();
+  box.color = [0.761, 1, 0.78, 1.0];
+  box.matrix.translate(0.175, -0.15, -0.125);
+  box.matrix.rotate(0, 0, 0, 1);
+  box.matrix.scale(0.075, 0.1, 0.075);
+  box.matrix.translate(-0.5, -0.5, -0.5);
+  box.render();
+
+  // Creature Left Fore Leg
+  var box = new Cube();
+  box.color = [0.761, 1, 0.78, 1.0];
+  box.matrix.translate(-0.175, -0.15, 0.125);
+  box.matrix.rotate(0, 0, 0, 1);
+  box.matrix.scale(0.075, 0.1, 0.075);
+  box.matrix.translate(-0.5, -0.5, -0.5);
+  box.render();
+
+  // Creature Right Fore Leg
+  var box = new Cube();
+  box.color = [0.761, 1, 0.78, 1.0];
+  box.matrix.translate(-0.175, -0.15, -0.125);
+  box.matrix.rotate(0, 0, 0, 1);
+  box.matrix.scale(0.075, 0.1, 0.075);
+  box.matrix.translate(-0.5, -0.5, -0.5);
+  box.render();
 
   // // Make a Test Triangle
   // let TestTriangleModelMatrix = new Matrix4()
   // gl.uniformMatrix4fv(u_ModelMatrix, false, TestTriangleModelMatrix.elements);
   // drawTriangle3D([-1.0, 0.0, 0.0, -0.5, -1.0, 0.0, 0.0, 0.0, 0.0])
 
-  var box = new Cube();
-  box.color = [1, 0.455, 0.545, 1.0];
-  box.matrix.translate(0.25, 0.0, 0.0);
-  box.matrix.rotate(g_cubeRotationAngle, g_cubeRotVecX, g_cubeRotVecY, g_cubeRotVecZ);
-  box.matrix.scale(.25, 0.25, 0.25, 1.0);
-  box.render();
+  // // Rotateable Cube
+  // var box = new Cube();
+  // box.color = [1, 0.455, 0.545, 1.0];
+  // box.matrix.translate(0.25, 0.0, 0.0);
+  // box.matrix.rotate(g_cubeRotationAngle, g_cubeRotVecX, g_cubeRotVecY, g_cubeRotVecZ);
+  // box.matrix.scale(.25, 0.25, 0.25);
+  // box.render();
+
 }
 
