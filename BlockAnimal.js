@@ -94,9 +94,10 @@ let g_creatureScaleY = 1;
 let g_creatureScaleZ = 1;
 let g_creatureAngle = 0;
 
-let g_feetAngle = 0
-let g_headAngle = 0
+let g_feetAngle = 0;
+let g_headAngle = 0;
 let g_earAngle = 0;
+let g_earTipAngle = 0;
 
 let g_animatingBulbasaur = true;
 let g_explodingBulbasaur = false;
@@ -115,11 +116,12 @@ function addActionsForHtmlUI() {
   document.getElementById('feetAngleSlide').addEventListener("mousemove", function () { g_feetAngle = this.value; renderScene(); });
   document.getElementById('headAngleSlide').addEventListener("mousemove", function () { g_headAngle = this.value; renderScene(); });
   document.getElementById('earAngleSlide').addEventListener("mousemove", function () { g_earAngle = this.value; renderScene(); });
+  document.getElementById('earTipAngleSlide').addEventListener("mousemove", function () { g_earTipAngle = this.value; renderScene(); });
 
-  document.getElementById('cubeRotationAngleSlide').addEventListener("mousemove", function () { g_cubeRotationAngle = this.value; renderScene(); });
-  document.getElementById('cubeRotationXSlide').addEventListener("mousemove", function () { g_cubeRotVecX = this.value; renderScene(); });
-  document.getElementById('cubeRotationYSlide').addEventListener("mousemove", function () { g_cubeRotVecY = this.value; renderScene(); });
-  document.getElementById('cubeRotationZSlide').addEventListener("mousemove", function () { g_cubeRotVecZ = this.value; renderScene(); });
+  // document.getElementById('cubeRotationAngleSlide').addEventListener("mousemove", function () { g_cubeRotationAngle = this.value; renderScene(); });
+  // document.getElementById('cubeRotationXSlide').addEventListener("mousemove", function () { g_cubeRotVecX = this.value; renderScene(); });
+  // document.getElementById('cubeRotationYSlide').addEventListener("mousemove", function () { g_cubeRotVecY = this.value; renderScene(); });
+  // document.getElementById('cubeRotationZSlide').addEventListener("mousemove", function () { g_cubeRotVecZ = this.value; renderScene(); });
 
 }
 
@@ -144,7 +146,24 @@ function main() {
   requestAnimationFrame(tick);
 }
 
+let g_startTime = performance.now() / 1000.0;
+let g_seconds = performance.now() / 1000.0 - g_startTime;
 
+function tick() {
+  // Save time
+  g_seconds = performance.now() / 1000.0 - g_startTime;
+
+  updateAnimationAngles();
+
+  renderScene();
+
+  requestAnimationFrame(tick);
+}
+
+function updatePerformanceIndicator(frameStartTime) {
+  let perfText = document.getElementById('performanceText');
+  perfText.innerHTML = "MS: " + Math.floor((performance.now() - frameStartTime) * 10) / 10 + " | FPS: " + Math.floor(10000 / (performance.now() - frameStartTime) / 10);
+}
 
 function click(ev) {
 
@@ -184,6 +203,7 @@ function updateAnimationAngles() {
 
     g_headAngle = (15 * Math.sin(g_seconds * 3 + 0.25));
     g_earAngle = (15 * Math.sin(g_seconds * 8));
+    g_earTipAngle = (15 * Math.sin(g_seconds * 8));
     g_feetAngle = (30 * Math.sin(g_seconds * 8 + 0.75));
   } else if (g_explodingBulbasaur) {
     g_creaturePosX = 0.01 * Math.sin(g_seconds * 16);
@@ -200,22 +220,8 @@ function updateAnimationAngles() {
   }
 }
 
-let g_startTime = performance.now() / 1000.0;
-let g_seconds = performance.now() / 1000.0 - g_startTime;
-
-function tick() {
-  // Save time
-  g_seconds = performance.now() / 1000.0 - g_startTime;
-  // console.log(g_seconds);
-
-  updateAnimationAngles();
-
-  renderScene();
-
-  requestAnimationFrame(tick);
-}
-
 function renderScene() {
+  let tickStartTime = performance.now();
 
   // Clear <canvas>
   gl.clear(gl.COLOR_BUFFER_BIT);
@@ -302,7 +308,7 @@ function renderScene() {
   box.color = [0.62, 0.875, 0.612, 1.0];
   box.matrix = new Matrix4(leftEarSpaceMatrix);
   box.matrix.translate(0.0, 0.75, 0.0);
-  box.matrix.rotate(g_earAngle, 0, 0, 1);
+  box.matrix.rotate(g_earTipAngle, 0, 0, 1);
   box.matrix.scale(0.5, 0.5, 0.5);
   box.matrix.translate(0.5, 0, 0.5);
   box.render();
@@ -312,7 +318,7 @@ function renderScene() {
   box.color = [0.62, 0.875, 0.612, 1.0];
   box.matrix = new Matrix4(rightEarSpaceMatrix);
   box.matrix.translate(0.0, 0.75, 0.0);
-  box.matrix.rotate(g_earAngle, 0, 0, 1);
+  box.matrix.rotate(g_earTipAngle, 0, 0, 1);
   box.matrix.scale(0.5, 0.5, 0.5);
   box.matrix.translate(0.5, 0, 0.5);
   box.render();
@@ -369,6 +375,8 @@ function renderScene() {
   // box.matrix.rotate(g_cubeRotationAngle, g_cubeRotVecX, g_cubeRotVecY, g_cubeRotVecZ);
   // box.matrix.scale(.25, 0.25, 0.25);
   // box.render();
+
+  updatePerformanceIndicator(tickStartTime)
 
 }
 
