@@ -86,27 +86,26 @@ let g_cubeRotVecX = 0;
 let g_cubeRotVecY = 0;
 let g_cubeRotVecZ = 1;
 
+let g_creaturePosX = 0;
+let g_creaturePosY = 0;
+let g_creaturePosZ = 0;
+let g_creatureScaleX = 1;
+let g_creatureScaleY = 1;
+let g_creatureScaleZ = 1;
+let g_creatureAngle = 0;
+
 let g_feetAngle = 0
+let g_headAngle = 0
+let g_earAngle = 0;
+
+let g_animatingBulbasaur = true;
+let g_explodingBulbasaur = false;
 
 // Set up actions for HTML UI elements
 function addActionsForHtmlUI() {
   // Button Events
-  // document.getElementById('green').onclick = function () { g_selectedColor = [0.0, 1.0, 0.0, 1.0]; };
-  // document.getElementById('red').onclick = function () { g_selectedColor = [1.0, 0.0, 0.0, 1.0]; };
-  // document.getElementById('clear').onclick = function () { g_shapesList = []; renderScene(); };
-
-  // document.getElementById('point').onclick = function () { g_selectedType = POINT; };
-  // document.getElementById('triangle').onclick = function () { g_selectedType = TRIANGLE; };
-  // document.getElementById('circle').onclick = function () { g_selectedType = CIRCLE; };
-
-  // document.getElementById('mirrormode').onclick = function () { if (g_mirrorMode) g_mirrorMode = false; else g_mirrorMode = true; };
-
-  // document.getElementById('sketch').onclick = function () { let sketch = new TotoroSketch(); g_shapesList.push(sketch); renderScene(); };
-
-  // // Color Slider Events
-  // document.getElementById('redSlide').addEventListener("mouseup", function () { g_selectedColor[0] = this.value / 100; });
-  // document.getElementById('greenSlide').addEventListener("mouseup", function () { g_selectedColor[1] = this.value / 100; });
-  // document.getElementById('blueSlide').addEventListener("mouseup", function () { g_selectedColor[2] = this.value / 100; });
+  document.getElementById('animOn').onclick = function () { g_animatingBulbasaur = true; g_explodingBulbasaur = false; };
+  document.getElementById('animOff').onclick = function () { g_animatingBulbasaur = false; g_explodingBulbasaur = false; };
 
   // Scene Manipulation Sliders
   document.getElementById('viewAngleYSlide').addEventListener("mousemove", function () { g_viewAngleY = this.value; renderScene(); });
@@ -114,6 +113,8 @@ function addActionsForHtmlUI() {
 
   // Creature Manipulation Sliders
   document.getElementById('feetAngleSlide').addEventListener("mousemove", function () { g_feetAngle = this.value; renderScene(); });
+  document.getElementById('headAngleSlide').addEventListener("mousemove", function () { g_headAngle = this.value; renderScene(); });
+  document.getElementById('earAngleSlide').addEventListener("mousemove", function () { g_earAngle = this.value; renderScene(); });
 
   document.getElementById('cubeRotationAngleSlide').addEventListener("mousemove", function () { g_cubeRotationAngle = this.value; renderScene(); });
   document.getElementById('cubeRotationXSlide').addEventListener("mousemove", function () { g_cubeRotVecX = this.value; renderScene(); });
@@ -132,11 +133,35 @@ function main() {
   // Add HTML UI Actions
   addActionsForHtmlUI();
 
+  // Register function (event handler) to be called on a mouse press
+  canvas.onclick = click;
+  canvas.onmousemove = function (ev) { if (ev.buttons == 1) { click(ev) } };
+
   // Specify the color for clearing <canvas>
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
 
   // Clear <canvas>
+  requestAnimationFrame(tick);
+}
+
+
+
+function click(ev) {
+
+  if (ev.shiftKey) { explode() }
+
+  // Get click event in WebGL coordinates
+  [x, y] = convertCoordinatesEventToGL(ev);
+
+  g_viewAngleY = x * 360;
+  g_viewAngleX = y * 360;
+
   renderScene();
+}
+
+function explode() {
+  g_animatingBulbasaur = false;
+  g_explodingBulbasaur = true;
 }
 
 function convertCoordinatesEventToGL(ev) {
@@ -148,6 +173,46 @@ function convertCoordinatesEventToGL(ev) {
   y = (canvas.height / 2 - (y - rect.top)) / (canvas.height / 2);
 
   return ([x, y]);
+}
+
+function updateAnimationAngles() {
+  if (g_animatingBulbasaur) {
+    g_creaturePosY = 0.01 * Math.sin(g_seconds * 8 + 0.75);
+    g_creatureAngle = 1 * Math.sin(g_seconds * 8 + 0.75);
+    g_creatureScaleY = 1 + 0.1 * Math.sin(g_seconds * 8 + 0.75);
+    g_creatureScaleZ = 1 - 0.1 * Math.sin(g_seconds * 8 + 0.75);
+
+    g_headAngle = (15 * Math.sin(g_seconds * 3 + 0.25));
+    g_earAngle = (15 * Math.sin(g_seconds * 8));
+    g_feetAngle = (30 * Math.sin(g_seconds * 8 + 0.75));
+  } else if (g_explodingBulbasaur) {
+    g_creaturePosX = 0.01 * Math.sin(g_seconds * 16);
+    g_creaturePosY = 0.01 * Math.sin(g_seconds * 16);
+    g_creaturePosZ = 0.01 * Math.sin(g_seconds * 16);
+    g_creatureAngle = 1 * Math.cos(g_seconds * 16);
+    g_creatureScaleX = 1 + 0.5 * Math.cos(g_seconds * 4);
+    g_creatureScaleY = 1 - 0.5 * Math.cos(g_seconds * 4);
+    g_creatureScaleZ = 1 + 0.5 * Math.cos(g_seconds * 4);
+
+    g_headAngle = (90 * Math.tan(g_seconds * 16));
+    g_earAngle = (90 * Math.tan(g_seconds * 16));
+    g_feetAngle = (90 * Math.tan(g_seconds * 16));
+  }
+}
+
+let g_startTime = performance.now() / 1000.0;
+let g_seconds = performance.now() / 1000.0 - g_startTime;
+
+function tick() {
+  // Save time
+  g_seconds = performance.now() / 1000.0 - g_startTime;
+  // console.log(g_seconds);
+
+  updateAnimationAngles();
+
+  renderScene();
+
+  requestAnimationFrame(tick);
 }
 
 function renderScene() {
@@ -163,9 +228,16 @@ function renderScene() {
 
   /// BULBASAUR MODEL ///
 
+  let objectSpaceMatrix = new Matrix4();
+  objectSpaceMatrix.translate(g_creaturePosX, g_creaturePosY, g_creaturePosZ);
+  objectSpaceMatrix.rotate(g_creatureAngle, 0, 0, 1);
+  objectSpaceMatrix.scale(g_creatureScaleX, g_creatureScaleY, g_creatureScaleZ);
+  objectSpaceMatrix.translate(0, 0, 0); // Set Origin
+
   // Creature Body
   var box = new Cube();
   box.color = [0.761, 1, 0.78, 1.0];
+  box.matrix = new Matrix4(objectSpaceMatrix);
   box.matrix.translate(0.0, 0.0, 0.0);
   box.matrix.rotate(0, 0, 0, 1);
   box.matrix.scale(0.45, 0.25, 0.35);
@@ -175,6 +247,7 @@ function renderScene() {
   // Creature Bulb Base
   var box = new Cube();
   box.color = [0.55, 0.8, 0.55, 1.0];
+  box.matrix = new Matrix4(objectSpaceMatrix);
   box.matrix.translate(0.0, 0.2, 0.0);
   box.matrix.rotate(0, 0, 0, 1);
   box.matrix.scale(0.325, 0.15, 0.225);
@@ -184,6 +257,7 @@ function renderScene() {
   // Creature Bulb Top
   var box = new Cube();
   box.color = [0.55, 0.8, 0.55, 1.0];
+  box.matrix = new Matrix4(objectSpaceMatrix);
   box.matrix.translate(0.0, 0.3, 0.0);
   box.matrix.rotate(0, 0, 0, 1);
   box.matrix.scale(0.175, 0.075, 0.125);
@@ -193,8 +267,10 @@ function renderScene() {
   // Creature Head
   var box = new Cube();
   box.color = [0.62, 0.875, 0.612, 1.0];
+  box.matrix = new Matrix4(objectSpaceMatrix);
   box.matrix.translate(0.25, 0.1, 0.0);
-  box.matrix.rotate(0, 0, 0, 1);
+  box.matrix.rotate(g_headAngle, 1, 0, 0);
+  let headSpaceMatrix = new Matrix4(box.matrix);
   box.matrix.scale(0.15, 0.25, 0.25);
   box.matrix.translate(-0.5, -0.5, -0.5); // Set Origin
   box.render();
@@ -202,24 +278,49 @@ function renderScene() {
   // Creature Ear Left
   var box = new Cube();
   box.color = [0.62, 0.875, 0.612, 1.0];
-  box.matrix.translate(0.25, 0.25, 0.09);
-  box.matrix.rotate(0, 0, 0, 1);
+  box.matrix = new Matrix4(headSpaceMatrix);
+  box.matrix.translate(0.0, .125, 0.09);
+  box.matrix.rotate(g_earAngle, 0, 0, 1);
   box.matrix.scale(0.05, 0.05, 0.05);
-  box.matrix.translate(-0.5, -0.5, -0.5); // Set Origin
+  box.matrix.translate(-0.5, 0, -0.5); // Set Origin
+  let leftEarSpaceMatrix = new Matrix4(box.matrix);
   box.render();
 
   // Creature Ear Right
   var box = new Cube();
   box.color = [0.62, 0.875, 0.612, 1.0];
-  box.matrix.translate(0.25, 0.25, -0.09);
-  box.matrix.rotate(0, 0, 0, 1);
+  box.matrix = new Matrix4(headSpaceMatrix);
+  box.matrix.translate(0.0, 0.125, -0.09);
+  box.matrix.rotate(g_earAngle, 0, 0, 1);
   box.matrix.scale(0.05, 0.05, 0.05);
-  box.matrix.translate(-0.5, -0.5, -0.5); // Set Origin
+  box.matrix.translate(-0.5, 0, -0.5); // Set Origin
+  let rightEarSpaceMatrix = new Matrix4(box.matrix);
+  box.render();
+
+  // Creature Ear Tip Left
+  var box = new Cube();
+  box.color = [0.62, 0.875, 0.612, 1.0];
+  box.matrix = new Matrix4(leftEarSpaceMatrix);
+  box.matrix.translate(0.0, 0.75, 0.0);
+  box.matrix.rotate(g_earAngle, 0, 0, 1);
+  box.matrix.scale(0.5, 0.5, 0.5);
+  box.matrix.translate(0.5, 0, 0.5);
+  box.render();
+
+  // Creature Ear Tip Right
+  var box = new Cube();
+  box.color = [0.62, 0.875, 0.612, 1.0];
+  box.matrix = new Matrix4(rightEarSpaceMatrix);
+  box.matrix.translate(0.0, 0.75, 0.0);
+  box.matrix.rotate(g_earAngle, 0, 0, 1);
+  box.matrix.scale(0.5, 0.5, 0.5);
+  box.matrix.translate(0.5, 0, 0.5);
   box.render();
 
   // Creature Left Fore Leg
   var box = new Cube();
   box.color = [0.761, 1, 0.78, 1.0];
+  box.matrix = new Matrix4(objectSpaceMatrix);
   box.matrix.translate(0.175, -0.125, 0.125);
   box.matrix.rotate(g_feetAngle, 0, 0, 1);
   box.matrix.scale(0.075, 0.1, 0.075);
@@ -229,6 +330,7 @@ function renderScene() {
   // Creature Right Fore Leg
   var box = new Cube();
   box.color = [0.761, 1, 0.78, 1.0];
+  box.matrix = new Matrix4(objectSpaceMatrix);
   box.matrix.translate(0.175, -0.125, -0.125);
   box.matrix.rotate(g_feetAngle, 0, 0, 1);
   box.matrix.scale(0.075, 0.1, 0.075);
@@ -238,6 +340,7 @@ function renderScene() {
   // Creature Left Hind Leg
   var box = new Cube();
   box.color = [0.761, 1, 0.78, 1.0];
+  box.matrix = new Matrix4(objectSpaceMatrix);
   box.matrix.translate(-0.175, -0.125, 0.125);
   box.matrix.rotate(-g_feetAngle, 0, 0, 1);
   box.matrix.scale(0.075, 0.1, 0.075);
@@ -247,6 +350,7 @@ function renderScene() {
   // Creature Right Hind Leg
   var box = new Cube();
   box.color = [0.761, 1, 0.78, 1.0];
+  box.matrix = new Matrix4(objectSpaceMatrix);
   box.matrix.translate(-0.175, -0.125, -0.125);
   box.matrix.rotate(-g_feetAngle, 0, 0, 1);
   box.matrix.scale(0.075, 0.1, 0.075);
