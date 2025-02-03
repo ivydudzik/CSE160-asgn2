@@ -80,10 +80,13 @@ function connectVariablesToGLSL() {
 // UI Globals
 let g_viewAngleY = 0;
 let g_viewAngleX = 0;
+
 let g_cubeRotationAngle = 0;
 let g_cubeRotVecX = 0;
 let g_cubeRotVecY = 0;
 let g_cubeRotVecZ = 1;
+
+let g_feetAngle = 0
 
 // Set up actions for HTML UI elements
 function addActionsForHtmlUI() {
@@ -108,6 +111,9 @@ function addActionsForHtmlUI() {
   // Scene Manipulation Sliders
   document.getElementById('viewAngleYSlide').addEventListener("mousemove", function () { g_viewAngleY = this.value; renderScene(); });
   document.getElementById('viewAngleXSlide').addEventListener("mousemove", function () { g_viewAngleX = this.value; renderScene(); });
+
+  // Creature Manipulation Sliders
+  document.getElementById('feetAngleSlide').addEventListener("mousemove", function () { g_feetAngle = this.value; renderScene(); });
 
   document.getElementById('cubeRotationAngleSlide').addEventListener("mousemove", function () { g_cubeRotationAngle = this.value; renderScene(); });
   document.getElementById('cubeRotationXSlide').addEventListener("mousemove", function () { g_cubeRotVecX = this.value; renderScene(); });
@@ -163,7 +169,7 @@ function renderScene() {
   box.matrix.translate(0.0, 0.0, 0.0);
   box.matrix.rotate(0, 0, 0, 1);
   box.matrix.scale(0.45, 0.25, 0.35);
-  box.matrix.translate(-0.5, -0.5, -0.5);
+  box.matrix.translate(-0.5, -0.5, -0.5); // Set Origin
   box.render();
 
   // Creature Bulb Base
@@ -172,7 +178,7 @@ function renderScene() {
   box.matrix.translate(0.0, 0.2, 0.0);
   box.matrix.rotate(0, 0, 0, 1);
   box.matrix.scale(0.325, 0.15, 0.225);
-  box.matrix.translate(-0.5, -0.5, -0.5);
+  box.matrix.translate(-0.5, -0.5, -0.5); // Set Origin
   box.render();
 
   // Creature Bulb Top
@@ -181,7 +187,7 @@ function renderScene() {
   box.matrix.translate(0.0, 0.3, 0.0);
   box.matrix.rotate(0, 0, 0, 1);
   box.matrix.scale(0.175, 0.075, 0.125);
-  box.matrix.translate(-0.5, -0.5, -0.5);
+  box.matrix.translate(-0.5, -0.5, -0.5); // Set Origin
   box.render();
 
   // Creature Head
@@ -190,7 +196,7 @@ function renderScene() {
   box.matrix.translate(0.25, 0.1, 0.0);
   box.matrix.rotate(0, 0, 0, 1);
   box.matrix.scale(0.15, 0.25, 0.25);
-  box.matrix.translate(-0.5, -0.5, -0.5);
+  box.matrix.translate(-0.5, -0.5, -0.5); // Set Origin
   box.render();
 
   // Creature Ear Left
@@ -199,7 +205,7 @@ function renderScene() {
   box.matrix.translate(0.25, 0.25, 0.09);
   box.matrix.rotate(0, 0, 0, 1);
   box.matrix.scale(0.05, 0.05, 0.05);
-  box.matrix.translate(-0.5, -0.5, -0.5);
+  box.matrix.translate(-0.5, -0.5, -0.5); // Set Origin
   box.render();
 
   // Creature Ear Right
@@ -208,43 +214,43 @@ function renderScene() {
   box.matrix.translate(0.25, 0.25, -0.09);
   box.matrix.rotate(0, 0, 0, 1);
   box.matrix.scale(0.05, 0.05, 0.05);
-  box.matrix.translate(-0.5, -0.5, -0.5);
+  box.matrix.translate(-0.5, -0.5, -0.5); // Set Origin
   box.render();
 
   // Creature Left Fore Leg
   var box = new Cube();
   box.color = [0.761, 1, 0.78, 1.0];
-  box.matrix.translate(0.175, -0.15, 0.125);
-  box.matrix.rotate(0, 0, 0, 1);
+  box.matrix.translate(0.175, -0.125, 0.125);
+  box.matrix.rotate(g_feetAngle, 0, 0, 1);
   box.matrix.scale(0.075, 0.1, 0.075);
-  box.matrix.translate(-0.5, -0.5, -0.5);
+  box.matrix.translate(-0.5, -1, -0.5); // Set Origin
   box.render();
 
   // Creature Right Fore Leg
   var box = new Cube();
   box.color = [0.761, 1, 0.78, 1.0];
-  box.matrix.translate(0.175, -0.15, -0.125);
-  box.matrix.rotate(0, 0, 0, 1);
+  box.matrix.translate(0.175, -0.125, -0.125);
+  box.matrix.rotate(g_feetAngle, 0, 0, 1);
   box.matrix.scale(0.075, 0.1, 0.075);
-  box.matrix.translate(-0.5, -0.5, -0.5);
+  box.matrix.translate(-0.5, -1, -0.5); // Set Origin
   box.render();
 
-  // Creature Left Fore Leg
+  // Creature Left Hind Leg
   var box = new Cube();
   box.color = [0.761, 1, 0.78, 1.0];
-  box.matrix.translate(-0.175, -0.15, 0.125);
-  box.matrix.rotate(0, 0, 0, 1);
+  box.matrix.translate(-0.175, -0.125, 0.125);
+  box.matrix.rotate(-g_feetAngle, 0, 0, 1);
   box.matrix.scale(0.075, 0.1, 0.075);
-  box.matrix.translate(-0.5, -0.5, -0.5);
+  box.matrix.translate(-0.5, -1, -0.5); // Set Origin
   box.render();
 
-  // Creature Right Fore Leg
+  // Creature Right Hind Leg
   var box = new Cube();
   box.color = [0.761, 1, 0.78, 1.0];
-  box.matrix.translate(-0.175, -0.15, -0.125);
-  box.matrix.rotate(0, 0, 0, 1);
+  box.matrix.translate(-0.175, -0.125, -0.125);
+  box.matrix.rotate(-g_feetAngle, 0, 0, 1);
   box.matrix.scale(0.075, 0.1, 0.075);
-  box.matrix.translate(-0.5, -0.5, -0.5);
+  box.matrix.translate(-0.5, -1, -0.5); // Set Origin
   box.render();
 
   // // Make a Test Triangle
