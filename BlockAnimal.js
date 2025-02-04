@@ -78,13 +78,13 @@ function connectVariablesToGLSL() {
 // HTML FUNCTIONS //
 
 // UI Globals
-let g_viewAngleY = 0;
-let g_viewAngleX = 0;
+let g_viewAngleY = 45;
+let g_viewAngleX = -5;
 
-let g_cubeRotationAngle = 0;
-let g_cubeRotVecX = 0;
-let g_cubeRotVecY = 0;
-let g_cubeRotVecZ = 1;
+// let g_cubeRotationAngle = 0;
+// let g_cubeRotVecX = 0;
+// let g_cubeRotVecY = 0;
+// let g_cubeRotVecZ = 1;
 
 let g_creaturePosX = 0;
 let g_creaturePosY = 0;
@@ -232,6 +232,27 @@ function renderScene() {
   globalRotateMatrix.rotate(g_viewAngleX, 1, 0, 0);
   gl.uniformMatrix4fv(u_GlobalRotateMatrix, false, globalRotateMatrix.elements);
 
+  // // Cylinder
+  // var cylinder = new Cylinder();
+  // cylinder.color = [1.0, 0.761, 0.78, 1.0];
+  // cylinder.matrix = new Matrix4();
+  // cylinder.matrix.translate(0.0, 0.0, 0.0);
+  // cylinder.matrix.rotate(0, 0, 0, 1);
+  // cylinder.matrix.scale(0.5, 0.5, 0.5);
+  // cylinder.matrix.translate(-0.5, -0.5, -0.5); // Set Origin
+  // cylinder.render();
+
+  // // Cylinder
+  // var cylinder = new Cube();
+  // cylinder.color = [1.0, 0.761, 0.78, 1.0];
+  // cylinder.matrix = new Matrix4();
+  // cylinder.matrix.translate(0.5, 0.0, 0.0);
+  // cylinder.matrix.rotate(0, 0, 0, 1);
+  // cylinder.matrix.scale(0.5, 0.5, 0.5);
+  // cylinder.matrix.translate(-0.5, -0.5, -0.5); // Set Origin
+  // cylinder.render();
+
+
   /// BULBASAUR MODEL ///
 
   let objectSpaceMatrix = new Matrix4();
@@ -250,24 +271,44 @@ function renderScene() {
   box.matrix.translate(-0.5, -0.5, -0.5); // Set Origin
   box.render();
 
-  // Creature Bulb Base
-  var box = new Cube();
+  // Creature Bulb Bottom
+  var box = new Cylinder();
   box.color = [0.55, 0.8, 0.55, 1.0];
   box.matrix = new Matrix4(objectSpaceMatrix);
   box.matrix.translate(0.0, 0.2, 0.0);
   box.matrix.rotate(0, 0, 0, 1);
-  box.matrix.scale(0.325, 0.15, 0.225);
-  box.matrix.translate(-0.5, -0.5, -0.5); // Set Origin
+  box.matrix.scale(0.25, 0.15, 0.25);
+  box.matrix.translate(0, -0.5, 0); // Set Origin
+  box.render();
+
+  // Creature Bulb Base
+  var box = new Cylinder();
+  box.color = [0.55, 0.8, 0.55, 1.0];
+  box.matrix = new Matrix4(objectSpaceMatrix);
+  box.matrix.translate(0.0, 0.25, 0.0);
+  box.matrix.rotate(0, 0, 0, 1);
+  box.matrix.scale(0.3, 0.2, 0.3);
+  box.matrix.translate(0, -0.5, 0); // Set Origin
+  box.render();
+
+  // Creature Bulb Base Wide
+  var box = new Cylinder();
+  box.color = [0.55, 0.8, 0.55, 1.0];
+  box.matrix = new Matrix4(objectSpaceMatrix);
+  box.matrix.translate(0.0, 0.225, 0.0);
+  box.matrix.rotate(0, 0, 0, 1);
+  box.matrix.scale(0.35, 0.125, 0.35);
+  box.matrix.translate(0, -0.5, 0); // Set Origin
   box.render();
 
   // Creature Bulb Top
-  var box = new Cube();
+  var box = new Cylinder();
   box.color = [0.55, 0.8, 0.55, 1.0];
   box.matrix = new Matrix4(objectSpaceMatrix);
-  box.matrix.translate(0.0, 0.3, 0.0);
+  box.matrix.translate(0.0, 0.375, 0.0);
   box.matrix.rotate(0, 0, 0, 1);
-  box.matrix.scale(0.175, 0.075, 0.125);
-  box.matrix.translate(-0.5, -0.5, -0.5); // Set Origin
+  box.matrix.scale(0.175, 0.1, 0.175);
+  box.matrix.translate(0, -0.5, 0); // Set Origin
   box.render();
 
   // Creature Head
