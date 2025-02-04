@@ -2,13 +2,13 @@ class Cylinder {
     constructor() {
         this.type = "cylinder";
         this.color = [1.0, 1.0, 1.0, 1.0];
-        this.segments = 8;
+        this.segments = 48;
         this.matrix = new Matrix4();
     }
 
     render() {
         var rgba = this.color;
-
+        let v = [];
         // Pass the color of a point to u_FragColor variable
         gl.uniform4f(u_FragColor, rgba[0], rgba[1], rgba[2], rgba[3]);
 
@@ -25,8 +25,10 @@ class Cylinder {
             let vec2 = [Math.cos(angle2 * Math.PI / 180) * 0.5, Math.sin(angle2 * Math.PI / 180) * 0.5];
             let pt1 = [centerPoint[0] + vec1[0], centerPoint[1] + vec1[1]];
             let pt2 = [centerPoint[0] + vec2[0], centerPoint[1] + vec2[1]];
-            drawTriangle3D([0.0, 1.0, 0.0, pt1[0], 1.0, pt1[1], pt2[0], 1.0, pt2[1]]);
+            v.push(0.0, 1.0, 0.0, pt1[0], 1.0, pt1[1], pt2[0], 1.0, pt2[1]);
         }
+        drawTriangleBatch3D(v);
+        v = [];
 
         // Darken Bottom Color
         gl.uniform4f(u_FragColor, rgba[0] * 0.9, rgba[1] * 0.9, rgba[2] * 0.9, rgba[3]);
@@ -41,9 +43,11 @@ class Cylinder {
             let vec2 = [Math.cos(angle2 * Math.PI / 180) * 0.5, Math.sin(angle2 * Math.PI / 180) * 0.5];
             let pt1 = [centerPoint[0] + vec1[0], centerPoint[1] + vec1[1]];
             let pt2 = [centerPoint[0] + vec2[0], centerPoint[1] + vec2[1]];
-            drawTriangle3D([pt1[0], 0.0, pt1[1], pt1[0], 1.0, pt1[1], pt2[0], 1.0, pt2[1]]);
-            drawTriangle3D([pt1[0], 0.0, pt1[1], pt2[0], 1.0, pt2[1], pt2[0], 0.0, pt2[1]]);
+            v.push(pt1[0], 0.0, pt1[1], pt1[0], 1.0, pt1[1], pt2[0], 1.0, pt2[1]);
+            v.push(pt1[0], 0.0, pt1[1], pt2[0], 1.0, pt2[1], pt2[0], 0.0, pt2[1]);
         }
+        drawTriangleBatch3D(v);
+        v = [];
 
         // Darken Bottom Color
         gl.uniform4f(u_FragColor, rgba[0] * 0.8, rgba[1] * 0.8, rgba[2] * 0.8, rgba[3]);
@@ -58,8 +62,10 @@ class Cylinder {
             let vec2 = [Math.cos(angle2 * Math.PI / 180) * 0.5, Math.sin(angle2 * Math.PI / 180) * 0.5];
             let pt1 = [centerPoint[0] + vec1[0], centerPoint[1] + vec1[1]];
             let pt2 = [centerPoint[0] + vec2[0], centerPoint[1] + vec2[1]];
-            drawTriangle3D([0.0, 0.0, 0.0, pt1[0], 0.0, pt1[1], pt2[0], 0.0, pt2[1]]);
+            v.push(0.0, 0.0, 0.0, pt1[0], 0.0, pt1[1], pt2[0], 0.0, pt2[1]);
         }
+        drawTriangleBatch3D(v);
+        v = [];
 
 
     }
