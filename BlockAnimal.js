@@ -74,13 +74,27 @@ function main() {
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT);
 
+  // -1.0, 1.0,
+  //   1.0, 1.0,
+  //   0.0, -1.0,
   let vertices = new Float32Array([
-    -1.0, -1.0,
-    0.0, 1.0,
+    -1.0, 1.0,
+    1.0, 1.0,
     1.0, -1.0,
-    1.0, 0.0, 0.0,
-    1.0, 0.0, 0.0,
-    1.0, 0.0, 0.0
+
+    -1.0, -1.0,
+    -1.0, 1.0,
+    1.0, -1.0,
+
+    0.0, 0.0, 0.0,
+    0.0, 0.0, 1.0,
+    0.0, 0.0, 1.0,
+
+    0.0, 0.0, 0.0,
+    0.0, 0.0, 0.0,
+    0.0, 0.0, 1.0,
+
+
   ]);
 
   // Create a buffer object
@@ -104,8 +118,8 @@ function main() {
   // gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
   // gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
 
-  gl.vertexAttribPointer(a_Color, 3, gl.FLOAT, false, 0, 24);
+  gl.vertexAttribPointer(a_Color, 3, gl.FLOAT, false, 0, 48);
   gl.enableVertexAttribArray(a_Color);
 
-  gl.drawArrays(gl.TRIANGLES, 0, 3);
+  gl.drawArrays(gl.TRIANGLES, 0, 6);
 }
